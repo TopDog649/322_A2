@@ -1,22 +1,21 @@
 //500ms after the page loads get the commoditities
 setTimeout(function(){
-    console.log("SetTimeout function triggered");
     request = new XMLHttpRequest();
     comArray = new Array();
+    widgetArray = new Array();
     getDataAjax();
 },500);
 
 // Create an XMLHttpRequest object to establish asynchronous communictaion to the database
 var request;
-// Create an array to hold all the commodity data
+// An array to hold all the commodity data
 var comArray;
-
+// An array to hold all the widgets
+var widgetArray;
 
 //call the php file that retreives names of commodities
 let getDataAjax = () => {
     url = "getCommodities.php";
-
-    console.log("executing getDataAjax");
     request.onload = storeData;
     request.open("GET",url);
     request.send("");
@@ -24,8 +23,6 @@ let getDataAjax = () => {
 
 //Store commodity data returned from an Ajax request as objects into the comArray
 let storeData = () => {
-    console.log("executing storeData");
-
     //insert all the commodity data into the commodity array
     var response = JSON.parse(request.responseText);
     comArray.length = response.length;
@@ -40,13 +37,17 @@ let storeData = () => {
         }
         comArray[i] = commodity;
     }
-    //go through the commodity array and display all the commodity names
-    for(var i = 0; i < comArray.length; i++){
-        console.log("Commodity: " + comArray[i].name);
-    }
+    //set the widgetArray to the size of comArray, as we can't store more widgets than commodites
+    widgetArray.length = comArray.length;
+
     //sort the comArray by commodity name
     sortCom();
-    //creat a dropbox of all the commodity items
+
+    //go through the commodity array and display all the commodity names in a drop down list
+    var dropdownList = document.getElementById("commodities_list");
+    for(var i = 0; i < comArray.length; i++){
+        dropdownList.innerHTML += `<option onclick="addWidget(${i})" >${comArray[i].name}</option>`;
+    }
 }
 
 //Sort commodities alphabetically by name in the array comArray using Selection Sort
@@ -57,13 +58,9 @@ function sortCom(){
 
     for(a = 0; a < comArray.length; a++){
         for(b = a; b < comArray.length; b++){
-            console.log("set: " + a + ", of " + b);
             //IF b < a THEN swap a and b
-            console.log("comparing comArray[b]: " + comArray[b].name + ", against comArray[a]: " + comArray[a].name);
             var result = (comArray[b].name).localeCompare(comArray[a].name)
-            console.log("result is:" + result);
             if(result < 0){
-                console.log("result is smaller than 0");
                 //temp sore a
                 tmp = comArray[a];
                 //set b to a position
@@ -75,14 +72,44 @@ function sortCom(){
     }
 }
 
-//create a dropbox of all the commodity items
-function createDropBox(){
-    
+//add a commodity widget to the to the document
+function addWidget(comIndex){
+    //if there is an existing widget in the corresponding positon then that commodity has already been added
+    if(widgetArray[comIndex] != null){
+        console.log("Cannot add duplictate widget");
+    }
+    else{
+        console.log("creating: " + comArray[comIndex].name + " widget");
+        //create a new widget
+        var widgetOb = new widget(comArray[comIndex], document.getElementById("div_widget"));
+        //add the widget to the widgetArray
+        widgetArray[comIndex] = widgetOb;
+        //add the widget to the page
+        widgetOb.add();
+    }
 }
 
-//add a widget to the to the document
-function addWidget(){
-    //get the 
+//remove the clicked widget from the html page and the widgetArray
+function removeWidget(widgetName){
+    console.log("Removing widget: " + widgetName);
+    //loop through the widget array and remove the widget matching the name
+    for(var i = 0; i < widgetArray.length; i++){
+        if((comArray[i].name + "_widget").localeCompare(widgetName) == 0){
+            widgetArray[i].remove();
+            widgetArray[i] = null;
+        }
+    }
 }
 
-
+class widget{
+    constructor(commodity, parentElement){
+        this.commodity = commodity;
+        this.parentElement = parentElement;
+    }
+    add(){
+        this.parentElement.innerHTML += `<p id="${this.commodity.name}_widget" onclick="removeWidget('${this.commodity.name}')">${this.commodity.name}</p>`;
+    }
+    remove(){
+        document.getElementById(`${this.commodity.name}_widget`).remove;
+    }
+}
