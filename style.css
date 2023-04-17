@@ -1,0 +1,28 @@
+:root{
+    text-align: center;
+    --background-color: #2d2c29;
+    --secondary-color: #43423d;
+    --text-color: #c1902f;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+/* GRID FORMAT */
+#grid_left{
+    grid-area: left-grid;
+    background-color: var(--secondary-color);
+}
+#grid_right{
+    grid-area: right-grid;
+    background-color: var(--secondary-color);
+}
+#grid_main{
+    display: grid;
+    grid-template-areas: 'left-grid right-grid right-grid';
+    grid-gap: 10px;
+    height: 90vh;
+}
+
+
+
+/* CONTROLS */
