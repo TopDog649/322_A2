@@ -2,35 +2,66 @@
     text-align: center;
     --background-color: #22211f;
     --grid-color: #2d2c29;
-    --control-color: #43423d;
+    --widget-color: #383733;
+    --control-color: #4e4d47;
     --text-color: #c1902f;
     background-color: var(--background-color);
     color: var(--text-color);
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 /* GRID FORMAT */
 #grid_left{
     grid-area: left-grid;
     background-color: var(--grid-color);
+    width: 500px;
 }
 #grid_right{
     grid-area: right-grid;
     background-color: var(--grid-color);
+    width: 100vh;
 }
 #grid_main{
     display: grid;
-    grid-template-areas: 'left-grid right-grid right-grid';
+    grid-template-areas: 'left-grid right-grid right-grid right-grid right-grid';
     grid-gap: 10px;
-    height: 90vh;
+    min-height: 90vh;
 }
 
-/* DROP DOWN LISTS */
-select{
+/* GENERAL CONTROLS */
+.control{
     background-color: var(--control-color);
     border: 1px solid var(--text-color);
     border-radius: 4px;
-    margin-top: 50px;
-    padding: 10px;
-    min-width: 250px;
     color: var(--text-color);
+}
+/* DROP DOWN LISTS */
+select{
+    margin-top: 30px;
+    width: 250px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+/* WIDGETS */
+.widget{
+    text-align: left;
+    background-color: var(--widget-color);
+    width: 400px;
+    margin-top: 15px;
+    margin-left: 50px;
+
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    color: var(--text-color);
+}
+/* ELEMENTS IN WIDGET */
+button{
+    text-align: end;
+    padding: 5px;
+    margin-left: 10px;
+    margin-bottom: 10px;
+}
+p{
+    margin-left: 10px;
+    line-height: 10px;
 }

@@ -84,32 +84,41 @@ function addWidget(comIndex){
         var widgetOb = new widget(comArray[comIndex], document.getElementById("div_widget"));
         //add the widget to the widgetArray
         widgetArray[comIndex] = widgetOb;
-        //add the widget to the page
-        widgetOb.add();
     }
 }
 
 //remove the clicked widget from the html page and the widgetArray
 function removeWidget(widgetName){
-    console.log("Removing widget: " + widgetName);
     //loop through the widget array and remove the widget matching the name
     for(var i = 0; i < widgetArray.length; i++){
-        if((comArray[i].name + "_widget").localeCompare(widgetName) == 0){
+        if((comArray[i].name + "_widget").localeCompare(widgetName + "_widget") == 0){
             widgetArray[i].remove();
             widgetArray[i] = null;
         }
     }
 }
 
+function graphWidget(){
+    
+}
+
 class widget{
     constructor(commodity, parentElement){
         this.commodity = commodity;
         this.parentElement = parentElement;
+        this.add();
     }
     add(){
-        this.parentElement.innerHTML += `<p id="${this.commodity.name}_widget" onclick="removeWidget('${this.commodity.name}')">${this.commodity.name}</p>`;
+        this.parentElement.innerHTML += 
+        `<div id="${this.commodity.name}_widget" class="widget">
+        <p>${this.commodity.name}</p>
+        <p>${this.commodity.info}</p>
+        <button class="control" onclick="removeWidget('${this.commodity.name}')">Remove</button>
+        <button class="control" onclick="removeWidget('${this.commodity.name}')">Graph</button>
+        <button class="control" onclick="removeWidget('${this.commodity.name}')">Compare</button>
+        </div>`;
     }
     remove(){
-        document.getElementById(`${this.commodity.name}_widget`).remove;
+        document.getElementById(`${this.commodity.name}_widget`).remove();
     }
 }
