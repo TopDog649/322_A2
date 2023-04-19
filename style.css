@@ -34,9 +34,13 @@
     border: 1px solid var(--text-color);
     border-radius: 4px;
     color: var(--text-color);
+
+    padding: 5px;
+    margin-left: 10px;
+    margin-bottom: 10px;
 }
-/* DROP DOWN LISTS */
-select{
+/* MAIN DROP DOWN LIST */
+#commodities_list{
     margin-top: 30px;
     width: 250px;
     padding: 10px;
@@ -55,12 +59,7 @@ select{
     color: var(--text-color);
 }
 /* ELEMENTS IN WIDGET */
-button{
-    text-align: end;
-    padding: 5px;
-    margin-left: 10px;
-    margin-bottom: 10px;
-}
+
 p{
     margin-left: 10px;
     line-height: 10px;

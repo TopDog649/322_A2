@@ -109,8 +109,8 @@ function graphWidget(id){
     widgetArray[id].graph()
 }
 
-function compareCommodity(id){
-    //widgetArray[id].compare();
+function compareCommodity(id, comparingId){
+    widgetArray[id].compare(comArray[comparingId]);
 }
 
 class widget{
@@ -126,8 +126,19 @@ class widget{
         <p>${this.commodity.info}</p>
         <button class="control" onclick="removeWidget(${this.commodity.id})">Remove</button>
         <button class="control" onclick="graphWidget(${this.commodity.id})">Graph</button>
-        <button class="control" onclick="compareCommodity(${this.commodity.id})">Compare</button>
+        <select class="control" id="compare${this.commodity.id}">
+            <option>Compare</option>
+        </select>
         </div>`;
+
+        //Populate the Drop down list
+        var dropDownList = document.getElementById(`compare${this.commodity.id}`);
+        for(var i = 0; i < comArray.length; i++){
+            //Add a commodity to the list that isn't the existing commodity
+            if(comArray[i].id != this.commodity.id){
+                dropDownList.innerHTML += `<option onclick="compareCommodity(${this.commodity.id}, ${comArray[i].id})">${comArray[i].name}</option>`;
+            }
+        }
     }
     remove(){
         document.getElementById(`${this.commodity.id}_widget`).remove();
@@ -136,7 +147,7 @@ class widget{
         console.log("Graphing: " + this.commodity.code);
         url = `https://www.alphavantage.co/query?function=${this.commodity.code}&interval=monthly&apikey=5V5P85DFCVQ5FLJP`
         
-        //get the weather data and format it as json
+        //get the commodity data and format it as json
         try{
             fetch(url,{method: 'GET'})
             .then(response => response.json())
@@ -190,6 +201,30 @@ class widget{
         chartInstance = new Chart(document.getElementById("commodityGraph"),config);
     }
     compare(commodity){
-
+        console.log("Comparing " + this.commodity.name + ", against " + commodity.name);
+        //create a new graph
+        graphWidget(commodity.id)
+        //request the data
+        url = `https://www.alphavantage.co/query?function=${this.commodity.code}&interval=monthly&apikey=5V5P85DFCVQ5FLJP`
+        
+        //get the commodity data and format it as json
+        try{
+            fetch(url,{method: 'GET'})
+            .then(response => response.json())
+            .then(this.displayComparison);
+        }
+        catch(error){
+            console.error(error);
+        }
+    }
+    //append the new data response to the existing graph
+    displayComparison = (response) => {
+        //get an array of values
+        var valueArray = new Array(12);
+        for(var b = 0; b < 12; b++){
+            valueArray[b] = response.data[b].value;
+        }
+        //append the array to the existing graph
+        
     }
 }
