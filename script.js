@@ -296,12 +296,15 @@ class widget{
     // then display a graph of the commodity data and the comparing commodity data
     displayComparison = (response) => {
         this.compareDataArray = new Array(12);
+        //var newDataArray = new Array(12);
+
         //try to get the resonse data values, an error will generate if the
         //user requests too many API calls at once
         try{
             //get an array of values
             for(var b = 0; b < 12; b++){
                 this.compareDataArray[b] = response.data[b].value;
+                //newDataArray[b] = response.data[b].value;
             }
         }
         catch(err){
