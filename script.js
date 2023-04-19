@@ -10,7 +10,7 @@ setTimeout(function(){
 var request;
 // An array to hold all the commodity data
 var comArray;
-// An array to hold all the widgets
+// An array to hold all the widgets, the widget's commodity id's match its index and the index of comArray[]
 var widgetArray;
 //global chart object
 var chartInstance;
@@ -24,6 +24,7 @@ let getDataAjax = () => {
 }
 
 //Store commodity data returned from an Ajax request as objects into the comArray
+//We also want to sort the arrary and add the commodity names to the dropdown list
 let storeData = () => {
     //insert all the commodity data into the commodity array
     var response = JSON.parse(request.responseText);
@@ -32,7 +33,9 @@ let storeData = () => {
         var comName = response[i].name;
         var comInfo = response[i].information;
         var comCode = response[i].code;
+        //Create a commodity as an object literal
         var commodity = {
+            //the id will correspond to the index of the commodity in comArray[] not the id from the database
             id : i,
             name : comName,
             info : comInfo,
@@ -80,14 +83,16 @@ function sortCom(){
     }
 }
 
-//add a commodity widget to the to the document
+/**
+ * add and create a widget which will display the commodity's name and information
+ * @param {*} comIndex the commodity's index in the comArray[] that we want to  create a widget for
+ */
 function addWidget(comIndex){
-    //if there is an existing widget in the corresponding positon then that commodity has already been added
+    //Check the widget isn't a duplicate
     if(widgetArray[comIndex] != null){
         console.log("Cannot add duplictate widget");
     }
     else{
-        console.log("creating: " + comArray[comIndex].name + " widget");
         //create a new widget, the id will be the index of the commodity Array for quick indexing
         var widgetOb = new widget(comArray[comIndex], document.getElementById("div_widget"));
         //add the widget to the widgetArray
@@ -95,30 +100,62 @@ function addWidget(comIndex){
     }
 }
 
-//remove the clicked widget from the html page and the widgetArray
+/**
+ * removes the widget from the html page and the widgetArrray[]
+ * @param {*} id of the widget commodity that we want to remove from the widget's parent element 
+ * and widget array
+ */
 function removeWidget(id){
     console.log("Removing commodity of id/index: " + id + ", and name: " + comArray[id].name);
     widgetArray[id].remove();
     widgetArray[id] = null;
 }
 
+/**
+ * Graph the widget's commodity
+ * @param {*} id the id of widget's commodity that we want to graph
+ */
 function graphWidget(id){
     if(chartInstance != null){
         chartInstance.destroy();
     }
-    widgetArray[id].graph()
+    //remove the comparing graph values and name
+    //as this will only display one commodity's values
+    widgetArray[id].compareDataArray = null;
+    widgetArray[id].compareComName = null;
+    //graph the individual value
+    widgetArray[id].graph();
 }
 
+/**
+ * compareCommodity(id, comparingId) will graph the commodity belonging to the widget and the commodity selected
+ * from the drop down list
+ * @param {*} id id of the commodity belonging to the widget
+ * @param {*} comparingId the id of the commodity that we want to add to the graph and compare
+ */
 function compareCommodity(id, comparingId){
     widgetArray[id].compare(comArray[comparingId]);
 }
 
+/**
+ * Widget class
+ * Construcor initialses its own commodity properties and add's itself to the html page under a parent element
+ * multiple functions to add and remove widgets as well as graph the commodity values which can compare against each other.
+ */
 class widget{
+    /**
+     * CONSTRUCTOR initialises values, then adds a widget under parentElement
+     * @param {*} commodity the main commodity property that will be displayed in the widget and graph
+     * @param {*} parentElement the parent element that can store the widget
+     */
     constructor(commodity, parentElement){
         this.commodity = commodity;
         this.parentElement = parentElement;
+        this.compareDataArray = null;
+        this.comparingComName = null;
         this.add();
     }
+    //add a widget under this.parentElement containing a div, 3 buttons, 2 paragraphs, and a drop down list box
     add(){
         this.parentElement.innerHTML += 
         `<div id="${this.commodity.id}_widget" class="widget">
@@ -140,14 +177,16 @@ class widget{
             }
         }
     }
+    //remove the widget from html by calling its own id
     remove(){
         document.getElementById(`${this.commodity.id}_widget`).remove();
     }
+    //Send an API call to alphavantage and display a graph of the commodity data
     graph(){
         console.log("Graphing: " + this.commodity.code);
         url = `https://www.alphavantage.co/query?function=${this.commodity.code}&interval=monthly&apikey=5V5P85DFCVQ5FLJP`
         
-        //get the commodity data and format it as json
+        //get the commodity data and format it as json THEN display values as a graph
         try{
             fetch(url,{method: 'GET'})
             .then(response => response.json())
@@ -157,8 +196,16 @@ class widget{
             console.error(error);
         }
     }
+    //display a chart.js graph on the html canvas with the commodity and comparing commodity values
+    //comparing commodity values are only displayed if compareDataArray[] is initialsed
     displayGraph = (response) => {
-        console.log(response.data[0].value.toString());
+        try{
+            console.log(response.data[0].value.toString());
+        }
+        catch(err){
+            alert("Slow down! The API call frequency is 5 calls per minute and 500 calls per day.");
+            return;
+        }
         //get an array of dates
         var dateArray = new Array(12);
         for(var a = 0; a < 12; a++){
@@ -170,16 +217,40 @@ class widget{
             valueArray[b] = response.data[b].value;
         }
 
-        var data = {
-            labels: dateArray,
-            datasets: [
-                {
-                    label: this.commodity.name,
-                    data: valueArray,
-                    backgroundColor: ["rgb(193,144,47)"],
-                },
-            ],
-        };
+        //IF we have a comparison commodity value array THEN add it to the graph along with commodity array values
+        if(this.compareDataArray != null){
+            var data = {
+                labels: dateArray,
+                datasets: [
+                    {
+                        label: this.commodity.name,
+                        data: valueArray,
+                        backgroundColor: ["rgb(193,144,47)"],
+                    },
+                    {
+                        label: this.compareComName,
+                        data: this.compareDataArray,
+                        backgroundColor: ["rgb(112,110,102)"],
+                    }
+                ]
+            };
+        }
+        //ELSE just display the graph with this commodity values
+        else{
+            console.log("Graphing one value");
+
+            var data = {
+                labels: dateArray,
+                datasets: [
+                    {
+                        label: this.commodity.name,
+                        data: valueArray,
+                        backgroundColor: ["rgb(193,144,47)"],
+                    },
+                ],
+            };
+        }
+
 
         var config = {
             type: "line",
@@ -192,7 +263,7 @@ class widget{
                     },
                     title:{
                         display: true,
-                        text: response.name
+                        text: "Monthly commodity price"
                     }
                 }
             }
@@ -200,14 +271,18 @@ class widget{
 
         chartInstance = new Chart(document.getElementById("commodityGraph"),config);
     }
-    compare(commodity){
-        console.log("Comparing " + this.commodity.name + ", against " + commodity.name);
-        //create a new graph
-        graphWidget(commodity.id)
-        //request the data
-        url = `https://www.alphavantage.co/query?function=${this.commodity.code}&interval=monthly&apikey=5V5P85DFCVQ5FLJP`
+    //Send an API call to alphavantage and display a graph of the commodity data and the comparing commodity data
+    compare(compareCommodity){
+        //If the html canvas has a chart instance, destroy it
+        if(chartInstance != null){
+            chartInstance.destroy();
+        }
+        //Store the name of the comparing commodity for a graph legend
+        this.compareComName = compareCommodity.name;
+
+        url = `https://www.alphavantage.co/query?function=${compareCommodity.code}&interval=monthly&apikey=5V5P85DFCVQ5FLJP`
         
-        //get the commodity data and format it as json
+        //GET the commodity data THEN format it as json THEN store the response values
         try{
             fetch(url,{method: 'GET'})
             .then(response => response.json())
@@ -217,14 +292,23 @@ class widget{
             console.error(error);
         }
     }
-    //append the new data response to the existing graph
+    //Store the data values in the response as the comparison data array of values
+    // then display a graph of the commodity data and the comparing commodity data
     displayComparison = (response) => {
-        //get an array of values
-        var valueArray = new Array(12);
-        for(var b = 0; b < 12; b++){
-            valueArray[b] = response.data[b].value;
+        this.compareDataArray = new Array(12);
+        //try to get the resonse data values, an error will generate if the
+        //user requests too many API calls at once
+        try{
+            //get an array of values
+            for(var b = 0; b < 12; b++){
+                this.compareDataArray[b] = response.data[b].value;
+            }
         }
-        //append the array to the existing graph
-        
+        catch(err){
+            alert("Slow down! The API call frequency is 5 calls per minute and 500 calls per day.");
+            return;
+        }
+        //graph the results
+        this.graph();
     }
 }
